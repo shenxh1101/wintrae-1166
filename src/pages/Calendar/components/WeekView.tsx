@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getWeekDays, formatDate, getToday, isToday, getShortWeekdayName } from '@/utils/date';
+import { getWeekDays, formatDate, getToday, isTodayDateObj, getShortWeekdayName } from '@/utils/date';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { useStudentStore } from '@/store/useStudentStore';
 import { SCHEDULE_STATUS, INTENTION_LEVELS } from '@/types';
@@ -17,11 +17,21 @@ const timeSlots = Array.from({ length: 12 }, (_, i) => {
 
 export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   const days = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const schedulesAll = useScheduleStore((state) => state.schedules);
   const getSchedulesByDate = useScheduleStore((state) => state.getSchedulesByDate);
   const getStudentById = useStudentStore((state) => state.getStudentById);
   const getTeacherById = useScheduleStore((state) => state.getTeacherById);
   const getCourseById = useScheduleStore((state) => state.getCourseById);
   const today = getToday();
+
+  const schedulesByDate = useMemo(() => {
+    const map: Record<string, ReturnType<typeof getSchedulesByDate>> = {};
+    for (const date of days) {
+      const dateStr = formatDate(date);
+      map[dateStr] = getSchedulesByDate(dateStr);
+    }
+    return map;
+  }, [days, schedulesAll, getSchedulesByDate]);
 
   return (
     <div className="overflow-x-auto">
@@ -32,19 +42,19 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
           </div>
           {days.map((date) => {
             const dateStr = formatDate(date);
-            const isTodayDate = isToday(date);
+            const isToday = isTodayDateObj(date);
             return (
               <div
                 key={dateStr}
                 onClick={() => onDateClick(dateStr)}
                 className={cn(
                   'bg-gray-50 py-3 text-center cursor-pointer hover:bg-gray-100 transition-colors',
-                  isTodayDate && 'bg-blue-50'
+                  isToday && 'bg-blue-50'
                 )}
               >
                 <div className={cn(
                   'text-sm font-medium',
-                  isTodayDate && 'text-blue-600'
+                  isToday && 'text-blue-600'
                 )}>
                   {formatDate(date, 'MM月dd日')}
                 </div>
@@ -66,9 +76,9 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
               </div>
               {days.map((date) => {
                 const dateStr = formatDate(date);
-                const schedules = getSchedulesByDate(dateStr).filter(
+                const schedules = schedulesByDate[dateStr]?.filter(
                   (s) => s.startTime >= time && s.startTime < `${parseInt(time) + 1}:00`
-                );
+                ) || [];
 
                 return (
                   <div

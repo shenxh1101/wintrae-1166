@@ -4,7 +4,7 @@ import { useFollowupStore } from '@/store/useFollowupStore';
 import { useStudentStore } from '@/store/useStudentStore';
 import { INTENTION_LEVELS } from '@/types';
 import { cn } from '@/utils/cn';
-import { formatDateTime, isToday, isPast, isTomorrow, formatDate } from '@/utils/date';
+import { formatDateTime, isTodayDate, isPastDate, isTomorrowDate, formatDate } from '@/utils/date';
 import { FollowupList } from './components/FollowupList';
 import { FollowupDetail } from './components/FollowupDetail';
 import { FollowupFormModal } from './components/FollowupFormModal';
@@ -18,13 +18,25 @@ export function FollowupPage() {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   const getSortedFollowups = useFollowupStore((state) => state.getSortedFollowups);
+  const getFollowupById = useFollowupStore((state) => state.getFollowupById);
   const completeFollowup = useFollowupStore((state) => state.completeFollowup);
   const deleteFollowup = useFollowupStore((state) => state.deleteFollowup);
   const getStudentById = useStudentStore((state) => state.getStudentById);
+  const followupsAll = useFollowupStore((state) => state.followups);
 
-  const followups = useMemo(() => getSortedFollowups(), [getSortedFollowups]);
+  const sortedPendingFollowups = useMemo(() => getSortedFollowups(), [getSortedFollowups]);
 
-  const filteredFollowups = followups.filter((followup) => {
+  const displayFollowups = useMemo(() => {
+    if (filterStatus === 'all') {
+      return followupsAll;
+    }
+    if (filterStatus === 'pending') {
+      return sortedPendingFollowups;
+    }
+    return followupsAll.filter((f) => f.status === filterStatus);
+  }, [filterStatus, followupsAll, sortedPendingFollowups]);
+
+  const filteredFollowups = displayFollowups.filter((followup) => {
     const student = getStudentById(followup.studentId);
     if (!student) return false;
 
@@ -49,13 +61,13 @@ export function FollowupPage() {
     return matchSearch && matchStatus && matchPriority;
   });
 
-  const pendingCount = followups.filter(f => f.status === 'pending').length;
-  const todayCount = followups.filter(f => f.status === 'pending' && f.nextContactDate && isToday(f.nextContactDate)).length;
-  const overdueCount = followups.filter(f => {
+  const pendingCount = followupsAll.filter(f => f.status === 'pending').length;
+  const todayCount = followupsAll.filter(f => f.status === 'pending' && f.nextContactDate && isTodayDate(f.nextContactDate)).length;
+  const overdueCount = followupsAll.filter(f => {
     if (f.status !== 'pending' || !f.nextContactDate) return false;
-    return isPast(f.nextContactDate) && !isToday(f.nextContactDate);
+    return isPastDate(f.nextContactDate) && !isTodayDate(f.nextContactDate);
   }).length;
-  const completedCount = followups.filter(f => f.status === 'completed').length;
+  const completedCount = followupsAll.filter(f => f.status === 'completed').length;
 
   const stats = [
     { label: '待回访', value: pendingCount, icon: Clock, color: 'bg-amber-500' },
@@ -66,9 +78,9 @@ export function FollowupPage() {
 
   const getPriorityLabel = (date?: string) => {
     if (!date) return { text: '无计划', color: 'bg-gray-100 text-gray-700' };
-    if (isPast(date) && !isToday(date)) return { text: '已逾期', color: 'bg-red-100 text-red-700' };
-    if (isToday(date)) return { text: '今天', color: 'bg-blue-100 text-blue-700' };
-    if (isTomorrow(date)) return { text: '明天', color: 'bg-amber-100 text-amber-700' };
+    if (isPastDate(date) && !isTodayDate(date)) return { text: '已逾期', color: 'bg-red-100 text-red-700' };
+    if (isTodayDate(date)) return { text: '今天', color: 'bg-blue-100 text-blue-700' };
+    if (isTomorrowDate(date)) return { text: '明天', color: 'bg-amber-100 text-amber-700' };
     return { text: '待跟进', color: 'bg-gray-100 text-gray-700' };
   };
 
@@ -179,7 +191,7 @@ export function FollowupPage() {
         <div className="w-96">
           <FollowupDetail
             followupId={selectedFollowupId}
-            getFollowupById={useFollowupStore.getState().getFollowupById}
+            getFollowupById={getFollowupById}
             getStudentById={getStudentById}
             getPriorityLabel={getPriorityLabel}
             onComplete={handleComplete}

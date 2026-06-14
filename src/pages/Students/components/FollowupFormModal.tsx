@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Clock } from 'lucide-react';
 import { useFollowupStore } from '@/store/useFollowupStore';
-import { getToday, formatDate, addDays } from '@/utils/date';
+import { getToday, formatDate, addDaysStr } from '@/utils/date';
 import { validateRequired } from '@/utils/validation';
 import { cn } from '@/utils/cn';
 
@@ -45,14 +45,17 @@ export function FollowupFormModal({ isOpen, onClose, studentId }: FollowupFormMo
     if (!validate()) return;
 
     const template = templates.find(t => t.id === formData.templateId);
+    const today = getToday();
 
     addFollowup({
       studentId,
+      handlerId: 'current-user',
+      templateId: formData.templateId || undefined,
       templateName: template?.name || '',
+      priority: 'medium',
       content: formData.content,
-      result: formData.result || undefined,
-      nextContactDate: formData.nextContactDate || undefined,
-      nextContactTime: formData.nextContactTime || undefined,
+      nextContactDate: formData.nextContactDate || today,
+      nextContactTime: formData.nextContactTime || '10:00',
     });
 
     onClose();
@@ -125,11 +128,11 @@ export function FollowupFormModal({ isOpen, onClose, studentId }: FollowupFormMo
                   type="button"
                   onClick={() => setFormData({
                     ...formData,
-                    nextContactDate: formatDate(addDays(getToday(), item.days)),
+                    nextContactDate: addDaysStr(getToday(), item.days),
                   })}
                   className={cn(
                     'px-3 py-1.5 rounded-lg text-xs font-medium transition-all border',
-                    formData.nextContactDate === formatDate(addDays(getToday(), item.days))
+                    formData.nextContactDate === addDaysStr(getToday(), item.days)
                       ? 'bg-blue-500 text-white border-transparent'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   )}

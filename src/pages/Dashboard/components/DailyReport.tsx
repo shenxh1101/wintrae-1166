@@ -11,8 +11,8 @@ export function DailyReport({ report }: DailyReportProps) {
     { label: '预约试听', value: report.totalSchedules, icon: Calendar, color: 'text-purple-500', bgColor: 'bg-purple-50' },
     { label: '已签到', value: report.checkedIn, icon: CheckCircle, color: 'text-emerald-500', bgColor: 'bg-emerald-50' },
     { label: '迟到', value: report.late, icon: Clock, color: 'text-amber-500', bgColor: 'bg-amber-50' },
-    { label: '缺席', value: report.absent, icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-50' },
-    { label: '新增回访', value: report.newFollowups, icon: FileText, color: 'text-indigo-500', bgColor: 'bg-indigo-50' },
+    { label: '缺席', value: report.totalAbsent, icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-50' },
+    { label: '新增回访', value: 0, icon: FileText, color: 'text-indigo-500', bgColor: 'bg-indigo-50' },
     { label: '完成回访', value: report.completedFollowups, icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-50' },
     { label: '转正数', value: report.conversions, icon: TrendingUp, color: 'text-orange-500', bgColor: 'bg-orange-50' },
   ];

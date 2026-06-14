@@ -1,4 +1,5 @@
-import { formatDate, getToday, isToday } from '@/utils/date';
+import { useMemo } from 'react';
+import { formatDate, getToday, isTodayDateObj } from '@/utils/date';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { useStudentStore } from '@/store/useStudentStore';
 import { SCHEDULE_STATUS, INTENTION_LEVELS } from '@/types';
@@ -17,13 +18,18 @@ const timeSlots = Array.from({ length: 14 }, (_, i) => {
 
 export function DayView({ currentDate, onDateClick }: DayViewProps) {
   const dateStr = formatDate(currentDate);
-  const schedules = useScheduleStore((state) => state.getSchedulesByDate(dateStr));
+  const schedulesAll = useScheduleStore((state) => state.schedules);
+  const getSchedulesByDate = useScheduleStore((state) => state.getSchedulesByDate);
   const getStudentById = useStudentStore((state) => state.getStudentById);
   const getTeacherById = useScheduleStore((state) => state.getTeacherById);
   const getCourseById = useScheduleStore((state) => state.getCourseById);
-  const isTodayDate = isToday(currentDate);
+  const isTodayDate = isTodayDateObj(currentDate);
 
-  const sortedSchedules = [...schedules].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const schedules = useMemo(() => getSchedulesByDate(dateStr), [schedulesAll, getSchedulesByDate, dateStr]);
+  const sortedSchedules = useMemo(() => 
+    [...schedules].sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    [schedules]
+  );
 
   return (
     <div className="space-y-4">

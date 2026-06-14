@@ -15,25 +15,29 @@ export function ReceptionPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
 
+  const schedulesAll = useScheduleStore((state) => state.schedules);
   const getSchedulesByDate = useScheduleStore((state) => state.getSchedulesByDate);
+  const getScheduleById = useScheduleStore((state) => state.getScheduleById);
   const getStudentById = useStudentStore((state) => state.getStudentById);
   const getTeacherById = useScheduleStore((state) => state.getTeacherById);
   const getCourseById = useScheduleStore((state) => state.getCourseById);
+  const attendances = useAttendanceStore((state) => state.attendances);
   const getAttendanceBySchedule = useAttendanceStore((state) => state.getAttendanceBySchedule);
   const checkIn = useAttendanceStore((state) => state.checkIn);
   const markLate = useAttendanceStore((state) => state.markLate);
   const markAbsent = useAttendanceStore((state) => state.markAbsent);
 
-  const schedules = useMemo(() => getSchedulesByDate(selectedDate), [selectedDate, getSchedulesByDate]);
+  const schedules = useMemo(() => getSchedulesByDate(selectedDate), [selectedDate, getSchedulesByDate, schedulesAll, attendances]);
 
-  const getOrCreateAttendance = (scheduleId: string, studentId: string) => {
-    const attendances = getAttendanceBySchedule(scheduleId);
-    return attendances.find(a => a.studentId === studentId);
+  const getAttendanceStatus = (scheduleId: string, studentId: string): 'pending' | 'checked' | 'late' | 'absent' => {
+    const attendance = getAttendanceBySchedule(scheduleId);
+    if (!attendance) return 'pending';
+    return attendance.status;
   };
 
   const filteredSchedules = schedules.filter((schedule) => {
     const student = getStudentById(schedule.studentId);
-    const attendance = getOrCreateAttendance(schedule.id, schedule.studentId);
+    const status = getAttendanceStatus(schedule.id, schedule.studentId);
 
     if (!student) return false;
 
@@ -41,31 +45,15 @@ export function ReceptionPage() {
       student.parentName.includes(searchQuery) ||
       student.phone.includes(searchQuery);
 
-    let matchStatus = true;
-    if (filterStatus !== 'all') {
-      if (filterStatus === 'pending') {
-        matchStatus = !attendance;
-      } else {
-        matchStatus = attendance?.status === filterStatus;
-      }
-    }
+    const matchStatus = filterStatus === 'all' || status === filterStatus;
 
     return matchSearch && matchStatus;
   });
 
-  const pendingCount = schedules.filter(s => !getOrCreateAttendance(s.id, s.studentId)).length;
-  const checkedInCount = schedules.filter(s => {
-    const att = getOrCreateAttendance(s.id, s.studentId);
-    return att?.status === 'checked_in';
-  }).length;
-  const lateCount = schedules.filter(s => {
-    const att = getOrCreateAttendance(s.id, s.studentId);
-    return att?.status === 'late';
-  }).length;
-  const absentCount = schedules.filter(s => {
-    const att = getOrCreateAttendance(s.id, s.studentId);
-    return att?.status === 'absent';
-  }).length;
+  const pendingCount = schedules.filter(s => getAttendanceStatus(s.id, s.studentId) === 'pending').length;
+  const checkedInCount = schedules.filter(s => getAttendanceStatus(s.id, s.studentId) === 'checked').length;
+  const lateCount = schedules.filter(s => getAttendanceStatus(s.id, s.studentId) === 'late').length;
+  const absentCount = schedules.filter(s => getAttendanceStatus(s.id, s.studentId) === 'absent').length;
 
   const stats = [
     { label: '今日预约', value: schedules.length, icon: Calendar, color: 'bg-blue-500' },
@@ -148,7 +136,7 @@ export function ReceptionPage() {
                   >
                     <option value="all">全部状态</option>
                     <option value="pending">待接待</option>
-                    <option value="checked_in">已签到</option>
+                    <option value="checked">已签到</option>
                     <option value="late">迟到</option>
                     <option value="absent">缺席</option>
                   </select>
@@ -181,7 +169,7 @@ export function ReceptionPage() {
         <div className="w-80">
           <ReceptionDetail
             scheduleId={selectedScheduleId}
-            getScheduleById={useScheduleStore.getState().getScheduleById}
+            getScheduleById={getScheduleById}
             getStudentById={getStudentById}
             getTeacherById={getTeacherById}
             getCourseById={getCourseById}

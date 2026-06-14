@@ -7,7 +7,7 @@ interface ReceptionListProps {
   getStudentById: (id: string) => Student | undefined;
   getTeacherById: (id: string) => Teacher | undefined;
   getCourseById: (id: string) => Course | undefined;
-  getAttendanceBySchedule: (scheduleId: string) => Attendance[];
+  getAttendanceBySchedule: (scheduleId: string) => Attendance | undefined;
   onCheckIn: (scheduleId: string, studentId: string) => void;
   onMarkLate: (scheduleId: string, studentId: string) => void;
   onMarkAbsent: (scheduleId: string, studentId: string) => void;
@@ -28,8 +28,7 @@ export function ReceptionList({
   selectedId,
 }: ReceptionListProps) {
   const getAttendance = (schedule: Schedule) => {
-    const attendances = getAttendanceBySchedule(schedule.id);
-    return attendances.find(a => a.studentId === schedule.studentId);
+    return getAttendanceBySchedule(schedule.id);
   };
 
   const sortedSchedules = [...schedules].sort((a, b) => {
@@ -139,9 +138,9 @@ export function ReceptionList({
               </div>
             </div>
 
-            {attendance?.checkInTime && (
+            {attendance?.checkinTime && (
               <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-                签到时间：{attendance.checkInTime}
+                签到时间：{attendance.checkinTime}
                 {attendance.remark && <span className="ml-4">备注：{attendance.remark}</span>}
               </div>
             )}

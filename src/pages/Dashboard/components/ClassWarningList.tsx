@@ -17,10 +17,22 @@ export function ClassWarningList({ warnings }: ClassWarningListProps) {
     );
   }
 
-  const sortedWarnings = [...warnings].sort((a, b) => {
+  const activeWarnings = warnings.filter((w) => w.level !== 'normal');
+
+  if (activeWarnings.length === 0) {
+    return (
+      <div className="h-[300px] flex flex-col items-center justify-center text-gray-500">
+        <Users className="w-12 h-12 mb-3 opacity-30" />
+        <p>暂无班级预警</p>
+        <p className="text-sm mt-1">所有班级名额充足</p>
+      </div>
+    );
+  }
+
+  const sortedWarnings = [...activeWarnings].sort((a, b) => {
     if (a.level === 'danger' && b.level === 'warning') return -1;
     if (a.level === 'warning' && b.level === 'danger') return 1;
-    return b.percentage - a.percentage;
+    return b.fillRate - a.fillRate;
   });
 
   return (
@@ -49,7 +61,7 @@ export function ClassWarningList({ warnings }: ClassWarningListProps) {
                 </span>
               </h3>
               <p className="text-sm text-gray-500 mt-1">
-                {warning.courseName} · {warning.teacherName}
+                任课老师：{warning.teacherName || '未安排'}
               </p>
             </div>
             <AlertTriangle className={cn(
@@ -61,7 +73,7 @@ export function ClassWarningList({ warnings }: ClassWarningListProps) {
           <div className="mb-2">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600">已报名 {warning.currentCount} / {warning.maxCapacity} 人</span>
-              <span className="font-medium text-gray-800">{warning.percentage}%</span>
+              <span className="font-medium text-gray-800">{Math.round(warning.fillRate)}%</span>
             </div>
             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
@@ -69,7 +81,7 @@ export function ClassWarningList({ warnings }: ClassWarningListProps) {
                   'h-full rounded-full transition-all',
                   warning.level === 'danger' ? 'bg-red-500' : 'bg-amber-500'
                 )}
-                style={{ width: `${warning.percentage}%` }}
+                style={{ width: `${warning.fillRate}%` }}
               />
             </div>
           </div>

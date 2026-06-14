@@ -56,7 +56,7 @@ export const mockAttendances: Attendance[] = [
 ];
 
 export const mockFeedbacks: Feedback[] = [
-  { id: generateId(), scheduleId: 'sch7', studentId: 's4', teacherId: 't1', rating: 5, performance: '课堂表现积极，注意力集中，能够跟上教学进度', parentFeedback: '孩子很喜欢张老师的课，回家后还在复习今天学习的内容', suggestion: '建议增加一些互动游戏环节', intentionLevel: 'A', createdAt: '2026-06-14T18:00:00Z' },
+  { id: generateId(), scheduleId: 'sch7', studentId: 's4', teacherId: 't1', rating: 5, performance: '课堂表现积极，注意力集中，能够跟上教学进度', ability: '学习能力强，接受新知识快', parentFeedback: '孩子很喜欢张老师的课，回家后还在复习今天学习的内容', suggestion: '建议增加一些互动游戏环节', intentionLevel: 'A', createdAt: '2026-06-14T18:00:00Z' },
 ];
 
 export const mockTemplates: FollowupTemplate[] = [

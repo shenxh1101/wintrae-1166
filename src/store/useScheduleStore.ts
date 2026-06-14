@@ -13,11 +13,12 @@ interface ScheduleState {
   addSchedule: (schedule: Omit<Schedule, 'id' | 'createdAt'>) => { success: boolean; conflicts?: Schedule[] };
   updateSchedule: (id: string, updates: Partial<Schedule>) => void;
   deleteSchedule: (id: string) => void;
+  getScheduleById: (id: string) => Schedule | undefined;
   getSchedulesByDate: (date: string) => Schedule[];
   getSchedulesByTeacher: (teacherId: string, date: string) => Schedule[];
   getSchedulesByStudent: (studentId: string) => Schedule[];
   checkTimeConflict: (teacherId: string, date: string, startTime: string, endTime: string, excludeId?: string) => Schedule[];
-  getClassWarnings: () => { classId: string; className: string; currentCount: number; maxCapacity: number; fillRate: number; status: 'normal' | 'warning' | 'full' }[];
+  getClassWarnings: () => { classId: string; className: string; teacherId: string; teacherName?: string; currentCount: number; maxCapacity: number; fillRate: number; status: 'normal' | 'warning' | 'full'; level: 'normal' | 'warning' | 'danger' }[];
   getTeacherById: (id: string) => Teacher | undefined;
   getCourseById: (id: string) => Course | undefined;
   getClassById: (id: string) => Class | undefined;
@@ -51,6 +52,10 @@ export const useScheduleStore = create<ScheduleState>()(
 
         set((state) => ({ schedules: [...state.schedules, newSchedule] }));
         return { success: true };
+      },
+
+      getScheduleById: (id) => {
+        return get().schedules.find((s) => s.id === id);
       },
 
       updateSchedule: (id, updates) => {
@@ -93,16 +98,26 @@ export const useScheduleStore = create<ScheduleState>()(
         return get().classes.map((cls) => {
           const fillRate = (cls.currentCount / cls.maxCapacity) * 100;
           let status: 'normal' | 'warning' | 'full' = 'normal';
-          if (fillRate >= 100) status = 'full';
-          else if (fillRate >= 90) status = 'warning';
+          let level: 'normal' | 'warning' | 'danger' = 'normal';
+          if (fillRate >= 100) {
+            status = 'full';
+            level = 'danger';
+          } else if (fillRate >= 90) {
+            status = 'warning';
+            level = 'warning';
+          }
+          const teacher = get().getTeacherById(cls.teacherId);
 
           return {
             classId: cls.id,
             className: cls.name,
+            teacherId: cls.teacherId,
+            teacherName: teacher?.name,
             currentCount: cls.currentCount,
             maxCapacity: cls.maxCapacity,
             fillRate,
             status,
+            level,
           };
         });
       },

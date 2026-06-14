@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getMonthDays, getShortWeekdayName, formatDate, getToday, isToday, parseISO } from '@/utils/date';
+import { getMonthDays, getShortWeekdayName, formatDate, getToday, isTodayDateObj, parseISO } from '@/utils/date';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { useStudentStore } from '@/store/useStudentStore';
 import { SCHEDULE_STATUS, INTENTION_LEVELS } from '@/types';
@@ -13,6 +13,7 @@ const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '�
 
 export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const days = useMemo(() => getMonthDays(currentDate), [currentDate]);
+  const schedulesAll = useScheduleStore((state) => state.schedules);
   const getSchedulesByDate = useScheduleStore((state) => state.getSchedulesByDate);
   const getStudentById = useStudentStore((state) => state.getStudentById);
   const getTeacherById = useScheduleStore((state) => state.getTeacherById);
@@ -20,6 +21,15 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
   const today = getToday();
 
   const currentMonth = currentDate.getMonth();
+
+  const schedulesByDate = useMemo(() => {
+    const map: Record<string, ReturnType<typeof getSchedulesByDate>> = {};
+    for (const date of days) {
+      const dateStr = formatDate(date);
+      map[dateStr] = getSchedulesByDate(dateStr);
+    }
+    return map;
+  }, [days, schedulesAll, getSchedulesByDate]);
 
   return (
     <div>
@@ -36,9 +46,9 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
       <div className="grid grid-cols-7 gap-px bg-gray-200">
         {days.map((date) => {
           const dateStr = formatDate(date);
-          const schedules = getSchedulesByDate(dateStr);
+          const schedules = schedulesByDate[dateStr] || [];
           const isCurrentMonth = date.getMonth() === currentMonth;
-          const isTodayDate = isToday(date);
+          const isToday = isTodayDateObj(date);
 
           return (
             <div
@@ -47,14 +57,14 @@ export function MonthView({ currentDate, onDateClick }: MonthViewProps) {
               className={cn(
                 'min-h-[120px] p-2 bg-white cursor-pointer transition-colors hover:bg-gray-50',
                 !isCurrentMonth && 'bg-gray-50/50',
-                isTodayDate && 'bg-blue-50'
+                isToday && 'bg-blue-50'
               )}
             >
               <div className="flex items-center justify-between mb-1">
                 <span
                   className={cn(
                     'text-sm font-medium',
-                    isTodayDate && 'w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center',
+                    isToday && 'w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center',
                     !isCurrentMonth && 'text-gray-400'
                   )}
                 >

@@ -4,7 +4,7 @@ import { useDashboardStore } from '@/store/useDashboardStore';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { useStudentStore } from '@/store/useStudentStore';
 import { cn } from '@/utils/cn';
-import { formatDate, getToday, addDays } from '@/utils/date';
+import { formatDate, getToday, addDaysStr } from '@/utils/date';
 import { ChannelChart } from './components/ChannelChart';
 import { TrendChart } from './components/TrendChart';
 import { ClassWarningList } from './components/ClassWarningList';
@@ -59,10 +59,10 @@ export function DashboardPage() {
             {quickDates.map((item) => (
               <button
                 key={item.days}
-                onClick={() => setSelectedDate(formatDate(addDays(getToday(), item.days)))}
+                onClick={() => setSelectedDate(addDaysStr(getToday(), item.days))}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-                  selectedDate === formatDate(addDays(getToday(), item.days))
+                  selectedDate === addDaysStr(getToday(), item.days)
                     ? 'bg-blue-500 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 )}

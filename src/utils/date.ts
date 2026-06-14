@@ -75,3 +75,25 @@ export const getShortWeekdayName = (date: Date | string): string => {
   const d = typeof date === 'string' ? parseISO(date) : date;
   return format(d, 'EEE', { locale: zhCN });
 };
+
+export const isTodayDate = (dateStr: string): boolean => {
+  return isToday(parseISO(dateStr));
+};
+
+export const isTomorrowDate = (dateStr: string): boolean => {
+  return isTomorrow(parseISO(dateStr));
+};
+
+export const isYesterdayDate = (dateStr: string): boolean => {
+  return isYesterday(parseISO(dateStr));
+};
+
+export const isPastDate = (dateStr: string): boolean => {
+  return parseISO(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
+};
+
+export const isTodayDateObj = (date: Date): boolean => {
+  return isToday(date);
+};
+
+export { addDays, subDays, parseISO };

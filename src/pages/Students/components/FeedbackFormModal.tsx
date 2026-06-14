@@ -17,6 +17,7 @@ export function FeedbackFormModal({ isOpen, onClose, studentId, scheduleId }: Fe
   const [formData, setFormData] = useState({
     scheduleId: scheduleId || '',
     teacherId: '',
+    rating: 5,
     performance: '',
     ability: '',
     suggestion: '',
@@ -43,9 +44,12 @@ export function FeedbackFormModal({ isOpen, onClose, studentId, scheduleId }: Fe
   const handleSubmit = () => {
     if (!validate()) return;
 
+    const intentionLevel = formData.intentionLevel === 'none' ? 'D' : formData.intentionLevel as 'A' | 'B' | 'C' | 'D';
+
     addFeedback({
       ...formData,
       studentId,
+      intentionLevel,
     });
 
     if (formData.intentionLevel !== 'none') {

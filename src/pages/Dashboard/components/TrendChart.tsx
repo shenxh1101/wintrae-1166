@@ -42,8 +42,8 @@ export function TrendChart({ data }: TrendChartProps) {
           <Legend />
           <Line
             type="monotone"
-            dataKey="newStudents"
-            name="新增学员"
+            dataKey="scheduled"
+            name="试听预约"
             stroke="#3B82F6"
             strokeWidth={2}
             dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
@@ -51,8 +51,8 @@ export function TrendChart({ data }: TrendChartProps) {
           />
           <Line
             type="monotone"
-            dataKey="schedules"
-            name="试听预约"
+            dataKey="checked"
+            name="已到课"
             stroke="#10B981"
             strokeWidth={2}
             dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
@@ -61,7 +61,7 @@ export function TrendChart({ data }: TrendChartProps) {
           <Line
             type="monotone"
             dataKey="conversions"
-            name="转正数"
+            name="转化数"
             stroke="#F59E0B"
             strokeWidth={2}
             dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}

@@ -9,7 +9,7 @@ interface ReceptionDetailProps {
   getStudentById: (id: string) => Student | undefined;
   getTeacherById: (id: string) => Teacher | undefined;
   getCourseById: (id: string) => Course | undefined;
-  getAttendanceBySchedule: (scheduleId: string) => Attendance[];
+  getAttendanceBySchedule: (scheduleId: string) => Attendance | undefined;
   onCheckIn: (scheduleId: string, studentId: string) => void;
   onMarkLate: (scheduleId: string, studentId: string) => void;
   onMarkAbsent: (scheduleId: string, studentId: string) => void;
@@ -41,8 +41,7 @@ export function ReceptionDetail({
   const student = getStudentById(schedule.studentId);
   const teacher = getTeacherById(schedule.teacherId);
   const course = getCourseById(schedule.courseId);
-  const attendances = getAttendanceBySchedule(scheduleId);
-  const attendance = attendances.find(a => a.studentId === schedule.studentId);
+  const attendance = getAttendanceBySchedule(scheduleId);
   const status = attendance?.status || 'pending';
   const statusInfo = ATTENDANCE_STATUS[status];
   const intentionLevel = student?.intentionLevel || 'none';
@@ -143,7 +142,7 @@ export function ReceptionDetail({
         <div className="mb-6 p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">签到信息</p>
           <p className="text-sm text-gray-700">
-            {attendance.checkInTime && `签到时间：${attendance.checkInTime}`}
+            {attendance.checkinTime && `签到时间：${attendance.checkinTime}`}
           </p>
           {attendance.remark && (
             <p className="text-sm text-gray-700 mt-1">备注：{attendance.remark}</p>

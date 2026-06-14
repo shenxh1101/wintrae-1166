@@ -1,12 +1,20 @@
+import { useMemo } from 'react';
 import { Bell, Search } from 'lucide-react';
 import { useFollowupStore } from '@/store/useFollowupStore';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { getToday } from '@/utils/date';
 
 export function Header() {
-  const overdueCount = useFollowupStore((state) => state.getOverdueFollowups()).length;
-  const todaySchedules = useScheduleStore((state) => state.getSchedulesByDate(getToday())).length;
-  const todayFollowups = useFollowupStore((state) => state.getTodayFollowups()).length;
+  const followups = useFollowupStore((state) => state.followups);
+  const schedules = useScheduleStore((state) => state.schedules);
+  const getOverdueFollowups = useFollowupStore((state) => state.getOverdueFollowups);
+  const getTodayFollowups = useFollowupStore((state) => state.getTodayFollowups);
+  const getSchedulesByDate = useScheduleStore((state) => state.getSchedulesByDate);
+
+  const today = useMemo(() => getToday(), []);
+  const overdueCount = useMemo(() => getOverdueFollowups().length, [followups, getOverdueFollowups]);
+  const todaySchedules = useMemo(() => getSchedulesByDate(today).length, [schedules, getSchedulesByDate, today]);
+  const todayFollowups = useMemo(() => getTodayFollowups().length, [followups, getTodayFollowups]);
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20">

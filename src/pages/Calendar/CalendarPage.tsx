@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CalendarView } from '@/types';
 import { getToday } from '@/utils/date';
 import { MonthView } from './components/MonthView';
@@ -17,7 +17,12 @@ export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string>(getToday());
   
   const teachers = useScheduleStore((state) => state.teachers);
-  const courses = useScheduleStore((state) => state.courses.filter((c) => c.type === 'trial'));
+  const coursesAll = useScheduleStore((state) => state.courses);
+  const getClassWarnings = useScheduleStore((state) => state.getClassWarnings);
+  const classes = useScheduleStore((state) => state.classes);
+  
+  const courses = useMemo(() => coursesAll.filter((c) => c.type === 'trial'), [coursesAll]);
+  const classWarnings = useMemo(() => getClassWarnings(), [getClassWarnings, classes]);
 
   const goToPrev = () => {
     const newDate = new Date(currentDate);
@@ -139,7 +144,7 @@ export function CalendarPage() {
         <div className="card p-4">
           <h3 className="section-title">班级名额</h3>
           <div className="space-y-3">
-            {useScheduleStore.getState().getClassWarnings().map((warning) => (
+            {classWarnings.map((warning) => (
               <div key={warning.classId} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">{warning.className}</span>

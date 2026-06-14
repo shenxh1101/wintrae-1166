@@ -12,9 +12,12 @@ interface FollowupState {
   updateFollowup: (id: string, updates: Partial<Followup>) => void;
   completeFollowup: (id: string, result: string, nextDate?: string, nextTime?: string) => void;
   cancelFollowup: (id: string) => void;
+  deleteFollowup: (id: string) => void;
+  getFollowupById: (id: string) => Followup | undefined;
   getPendingFollowups: () => Followup[];
   getOverdueFollowups: () => Followup[];
   getTodayFollowups: () => Followup[];
+  getCompletedFollowups: () => Followup[];
   getFollowupsByStudent: (studentId: string) => Followup[];
   getSortedFollowups: () => Followup[];
   addTemplate: (template: Omit<FollowupTemplate, 'id'>) => void;
@@ -53,6 +56,9 @@ export const useFollowupStore = create<FollowupState>()(
         const followup = get().followups.find((f) => f.id === id);
         if (!followup) return;
 
+        const now = new Date().toISOString();
+        const today = getToday();
+
         if (nextDate && nextTime) {
           const newFollowup: Followup = {
             id: generateId(),
@@ -62,22 +68,23 @@ export const useFollowupStore = create<FollowupState>()(
             nextContactTime: nextTime,
             priority: followup.priority,
             templateId: followup.templateId,
+            templateName: followup.templateName,
             content: '',
             status: 'pending',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: now,
+            updatedAt: now,
           };
           set((state) => ({
             followups: [
               ...state.followups.map((f) =>
                 f.id === id
-                  ? {
+                  ? ({
                       ...f,
-                      status: 'completed',
+                      status: 'completed' as const,
                       result,
-                      lastContactDate: getToday(),
-                      updatedAt: new Date().toISOString(),
-                    }
+                      lastContactDate: today,
+                      updatedAt: now,
+                    } as Followup)
                   : f
               ),
               newFollowup,
@@ -87,13 +94,13 @@ export const useFollowupStore = create<FollowupState>()(
           set((state) => ({
             followups: state.followups.map((f) =>
               f.id === id
-                ? {
+                ? ({
                     ...f,
-                    status: 'completed',
+                    status: 'completed' as const,
                     result,
-                    lastContactDate: getToday(),
-                    updatedAt: new Date().toISOString(),
-                  }
+                    lastContactDate: today,
+                    updatedAt: now,
+                  } as Followup)
                 : f
             ),
           }));
@@ -104,10 +111,20 @@ export const useFollowupStore = create<FollowupState>()(
         set((state) => ({
           followups: state.followups.map((f) =>
             f.id === id
-              ? { ...f, status: 'cancelled', updatedAt: new Date().toISOString() }
+              ? ({ ...f, status: 'cancelled' as const, updatedAt: new Date().toISOString() } as Followup)
               : f
           ),
         }));
+      },
+
+      deleteFollowup: (id) => {
+        set((state) => ({
+          followups: state.followups.filter((f) => f.id !== id),
+        }));
+      },
+
+      getFollowupById: (id) => {
+        return get().followups.find((f) => f.id === id);
       },
 
       getPendingFollowups: () => {
@@ -126,6 +143,10 @@ export const useFollowupStore = create<FollowupState>()(
         return get()
           .getPendingFollowups()
           .filter((f) => f.nextContactDate === today);
+      },
+
+      getCompletedFollowups: () => {
+        return get().followups.filter((f) => f.status === 'completed');
       },
 
       getFollowupsByStudent: (studentId) => {

@@ -140,6 +140,8 @@ export interface ChannelStats {
 export interface ClassWarning {
   classId: string;
   className: string;
+  teacherId: string;
+  teacherName?: string;
   currentCount: number;
   maxCapacity: number;
   fillRate: number;
